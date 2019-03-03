@@ -52,5 +52,6 @@ int main(int argc, char *argv[])
     {
         cout << "Thread 2 successfully completed work with code:" << *(int*) pCode[1] << endl;
     }
+    cout << "Program finished work" << endl;
     return 0;
 }
