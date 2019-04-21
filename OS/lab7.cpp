@@ -49,8 +49,8 @@ int main(int argc, char *argv[])
     fd = shm_open("descriptor", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
     ftruncate(fd, sizeof(int));
     mem = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    semw = sem_open("semw", O_CREAT, 0644, 1);
-    semr = sem_open("semr", O_CREAT, 0644, 1);
+    semw = sem_open("semw", O_CREAT, 0644, 0);
+    semr = sem_open("semr", O_CREAT, 0644, 0);
     inThr1.semw = semw;
     inThr1.semr = semr;
     inThr1.flag = 1;
