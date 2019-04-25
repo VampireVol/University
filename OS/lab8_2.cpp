@@ -21,9 +21,16 @@ void *threadOne(void *iThr)
     int numOut;
     while((((InThread*) iThr)->flag) != 0)
     {
-        numOut = rand() % 100 + 1;
-        read(((InThread*) iThr)->fd, &numOut, 1);
-        cout << "From buffer:" << numOut << endl << flush;
+        read(((InThread*) iThr)->fd, &numOut, sizeof(int));
+        if (numOut < 32000)
+        {
+            cout << "From buffer:" << numOut << endl << flush;
+        }
+        else
+        {
+            cout << "Buffer is empty" << endl << flush;
+            
+        }
         sleep(1);
     }
     cout << endl << "Thread 1 finished work" << endl;
@@ -37,19 +44,31 @@ int main(int argc, char *argv[])
     pthread_t thread1;
     InThread inThr1;
     void *pCode;
-    mkfifo("fdLab8", O_RDWR);
-    inThr1.fd = open("fdLab8", O_CREAT | O_RDWR | O_APPEND);
+    mkfifo("fdLab8", 0644);
+    inThr1.fd = open("fdLab8", O_CREAT | O_RDONLY | O_NONBLOCK);
     inThr1.flag = 1;
-    pthread_create(&thread1, NULL, &threadOne, &inThr1);
-    getchar();
-    inThr1.flag = 0;
-    pthread_join(thread1, &pCode);
-    if (*(int*) pCode == 4)
+    timespec outTime;
+    timespec timer;
+    clock_gettime(CLOCK_REALTIME, &outTime);
+    outTime.tv_sec += 10;
+    while ((inThr1.fd == -1) && (timer.tv_sec != outTime.tv_sec))
     {
-        cout << "Thread 1 successfully completed work with code:" << *(int*) pCode << endl;
+        inThr1.fd = open("fdLab8", O_CREAT | O_RDONLY| O_NONBLOCK);
+        clock_gettime(CLOCK_REALTIME, &timer);
     }
-    close(inThr1.fd);
-    unlink("fdLab8");
+    if (inThr1.fd != -1)
+    {
+        pthread_create(&thread1, NULL, &threadOne, &inThr1);
+        getchar();
+        inThr1.flag = 0;
+        pthread_join(thread1, &pCode);
+        if (*(int*) pCode == 4)
+        {
+            cout << "Thread 1 successfully completed work with code:" << *(int*) pCode << endl;
+        }
+        close(inThr1.fd);
+        unlink("fdLab8");
+    }  
     cout << "Program 1 finished work" << endl;
     return 0;
 }
